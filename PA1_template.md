@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 setwd("C:/R working directory/RepData/RepData_PeerAssessment1")
 
@@ -12,38 +7,71 @@ setwd("C:/R working directory/RepData/RepData_PeerAssessment1")
 
 First let's set the locale to English:
 
-```{r}
+
+```r
 Sys.setlocale("LC_TIME", "English")
+```
+
+```
+## [1] "English_United States.1252"
 ```
 
 Then let's load the data:
 
-```{r}
+
+```r
 activity <- read.csv("activity.csv", colClasses = c("numeric", "Date"))
 ```
 
 I like to use the dplyr package to manipulate data:
 
-```{r results="hide"}
+
+```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     filter
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
 ```
 
 Let's add a column indicating the hour of the day when the steps were made:
 
-```{r results="hide"}
+
+```r
 activity <- mutate(activity, hour=trunc(interval/100))
 ```
 
 Let's add a column indicating the weekday when the steps were made:
 
-```{r results="hide"}
+
+```r
 activity <- mutate(activity, weekday=weekdays(date))
 ```
 
 Now we have all the info we need to answer the following questions
 
-```{r}
+
+```r
 head(activity)
+```
+
+```
+##   steps       date interval hour weekday
+## 1    NA 2012-10-01        0    0  Monday
+## 2    NA 2012-10-01        5    0  Monday
+## 3    NA 2012-10-01       10    0  Monday
+## 4    NA 2012-10-01       15    0  Monday
+## 5    NA 2012-10-01       20    0  Monday
+## 6    NA 2012-10-01       25    0  Monday
 ```
 
 
@@ -53,30 +81,40 @@ head(activity)
 
 Let's calculate a dataframe of the total amount of steps by day
 
-```{r}
+
+```r
 stepsperday <- group_by(activity[ , 1:2], date)
 stepsperday <- summarise(stepsperday, steps = sum(steps))
 print.data.frame(head(stepsperday))
 ```
 
+```
+##         date steps
+## 1 2012-10-01    NA
+## 2 2012-10-02   126
+## 3 2012-10-03 11352
+## 4 2012-10-04 12116
+## 5 2012-10-05 13294
+## 6 2012-10-06 15420
+```
+
 
 ####2.  Make a histogram of the total number of steps taken each day
 
-```{r}
+
+```r
 hist(stepsperday$steps, main = "", col="steelblue", xlab = "Steps per day")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
 
 #### 3. Calculate and report the mean and median of the total number of steps taken per day
 
 
 
-```{r , echo=FALSE , result="asis"}
-options(scipen=10, digits=0)
-mean <- mean(stepsperday$steps, na.rm="true")
-median <- median(stepsperday$steps, na.rm="true")
-```
 
-The mean amount of steps taken per day is `r mean` and the median is `r median`
+
+The mean amount of steps taken per day is 10766 and the median is 10765
 
 
 ## What is the average daily activity pattern?
@@ -86,25 +124,47 @@ The mean amount of steps taken per day is `r mean` and the median is `r median`
 
 Let's calculate a data frame with average steps per minute:
 
-```{r}
+
+```r
 avgstepsperinterval <- activity[ !(is.na(activity$steps)) ,]
 avgstepsperinterval <- group_by(avgstepsperinterval[ , c(1,3)], interval)
 avgstepsperinterval <- summarise(avgstepsperinterval, steps = mean(steps))
 print.data.frame(head(avgstepsperinterval))
 ```
 
+```
+##   interval steps
+## 1        0     2
+## 2        5     0
+## 3       10     0
+## 4       15     0
+## 5       20     0
+## 6       25     2
+```
+
 So let's print the time series plot:
 
-```{r}
+
+```r
 with(avgstepsperinterval,plot(interval, steps, type="l"))
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
 
 #### 2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 This can be calculated with the following code:
 
-```{r}
+
+```r
 avgstepsperinterval[avgstepsperinterval$steps==max(avgstepsperinterval$steps), ]
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval steps
+## 1      835   206
 ```
 
 
@@ -114,29 +174,47 @@ avgstepsperinterval[avgstepsperinterval$steps==max(avgstepsperinterval$steps), ]
 
 This can be done with the following
 
-```{r}
+
+```r
 nrow(activity[!complete.cases(activity), ])
+```
+
+```
+## [1] 2304
 ```
 
 #### 2.Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
 Let's use the previously calculated avgstepsperinterval. Let's merge this with the activity data frame into activity2 and let's sort the observations to their original order:
 
-```{r}
+
+```r
 activity2 <- merge(activity, avgstepsperinterval, by="interval", all.x="true")
 activity2 <- activity2[order(activity2$date),]
 head(activity2)
 ```
 
+```
+##     interval steps.x       date hour weekday steps.y
+## 1          0      NA 2012-10-01    0  Monday       2
+## 63         5      NA 2012-10-01    0  Monday       0
+## 128       10      NA 2012-10-01    0  Monday       0
+## 205       15      NA 2012-10-01    0  Monday       0
+## 264       20      NA 2012-10-01    0  Monday       0
+## 327       25      NA 2012-10-01    0  Monday       2
+```
+
 Now let's add a new column where the NAs in steps are substituted with the avg values
 
-```{r}
+
+```r
 activity2 <-  mutate(activity2, steps=ifelse(is.na(steps.x),steps.y,steps.x))
 ```
 
 #### 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-```{r}
+
+```r
 activity2 <- activity2[ ,c(7,3,1,4,5) ]
 ```
 
@@ -144,22 +222,34 @@ activity2 <- activity2[ ,c(7,3,1,4,5) ]
 
 So as it was previously done:
 
-```{r}
+
+```r
 stepsperday2 <- group_by(activity2[ , 1:2], date)
 stepsperday2 <- summarise(stepsperday2, steps = sum(steps))
 print.data.frame(head(stepsperday2))
+```
+
+```
+##         date steps
+## 1 2012-10-01 10766
+## 2 2012-10-02   126
+## 3 2012-10-03 11352
+## 4 2012-10-04 12116
+## 5 2012-10-05 13294
+## 6 2012-10-06 15420
+```
+
+```r
 hist(stepsperday2$steps, main = "", col=555, xlab = "Steps per day")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-17-1.png) 
 
-```{r , echo=FALSE , result="asis"}
-options(scipen=10, digits=0)
-mean2 <- mean(stepsperday2$steps, na.rm="true")
-median2 <- median(stepsperday2$steps, na.rm="true")
-```
 
-So with the missing values the mean was `r mean` and the median was `r median`
-Now with the missing values being replaced with the interval means the mean is `r mean2` and the median is `r median2`
+
+
+So with the missing values the mean was 10766 and the median was 10765
+Now with the missing values being replaced with the interval means the mean is 10766 and the median is 10766
 
 Therefore substituting the missing values with interval means did not have any effect on the mean but it did have a slight effect on the median.
 
@@ -169,27 +259,52 @@ Therefore substituting the missing values with interval means did not have any e
 
 So let's add the variable weekday2
 
-```{r}
+
+```r
 activity2 <- mutate(activity2, weekday2=ifelse(weekday=="Sunday" | weekday=="Saturday","Weekend","Weekday"))
 head(activity2)
+```
+
+```
+##   steps       date interval hour weekday weekday2
+## 1     2 2012-10-01        0    0  Monday  Weekday
+## 2     0 2012-10-01        5    0  Monday  Weekday
+## 3     0 2012-10-01       10    0  Monday  Weekday
+## 4     0 2012-10-01       15    0  Monday  Weekday
+## 5     0 2012-10-01       20    0  Monday  Weekday
+## 6     2 2012-10-01       25    0  Monday  Weekday
 ```
 
 #### 2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 
 First we need to average the amount of steps by weekday/weekend and interval:
 
-```{r}
+
+```r
 activity2 <- group_by(activity2[ , c(1,3,6)], weekday2,interval)
 activity2  <- summarise(activity2 , steps = mean(steps))
 print.data.frame(head(activity2))
 ```
 
+```
+##   weekday2 interval steps
+## 1  Weekday        0     2
+## 2  Weekday        5     0
+## 3  Weekday       10     0
+## 4  Weekday       15     0
+## 5  Weekday       20     0
+## 6  Weekday       25     2
+```
+
 and then let's print the two plots using lattice:
 
-```{r}
+
+```r
  library(lattice)
  with(activity2,xyplot(steps~interval|weekday2, type="l", layout = c(1, 2)))
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-21-1.png) 
 
 
 So it can clearly be seen that there is difference in between weekend and weekday:
