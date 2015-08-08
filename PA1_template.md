@@ -1,6 +1,5 @@
 # Reproducible Research: Peer Assessment 1
 
-setwd("C:/R working directory/RepData/RepData_PeerAssessment1")
 
 
 ## Loading and preprocessing the data

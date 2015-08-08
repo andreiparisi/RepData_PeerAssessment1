@@ -5,7 +5,6 @@ output:
     keep_md: true
 ---
 
-setwd("C:/R working directory/RepData/RepData_PeerAssessment1")
 
 
 ## Loading and preprocessing the data
